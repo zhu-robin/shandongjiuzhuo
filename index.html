@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>山东酒桌模拟器</title>
+    <style>
+        body {
+            font-family: '微软雅黑', sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5e6d3;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .input-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        input {
+            padding: 10px;
+            width: 220px;
+            margin-right: 10px;
+            border: 1px solid #8b0000;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #8b0000;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #6a0000;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff3e6;
+            border-radius: 8px;
+        }
+        .round-table {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 30px auto;
+            background: #e0c4a2;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        .seat {
+            position: absolute;
+            width: 80px;
+            padding: 10px;
+            background: white;
+            border: 2px solid #8b0000;
+            border-radius: 8px;
+            text-align: center;
+            transform: translate(-50%, -50%);
+        }
+        .highlight {
+            background: #ffe08a;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="text-align: center; color: #8b0000;">山东酒桌礼仪模拟器 🍶</h2>
+        <div class="input-section">
+            <input type="text" id="roleInput" placeholder="输入身份（如：女性宾客）">
+            <button onclick="showGuidance()">获取指导</button>
+        </div>
+        <div id="resultArea" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const roles = {
+            // 原有角色
+            '主陪': {
+                seat: {pos: [50, 10], angle: 0},
+                steps: ['第一杯酒分6次喝完','前三杯带领敬酒','控制全场节奏'],
+                rules: '坐正对门位置，负责开场致辞'
+            },
+            '副陪': {
+                seat: {pos: [50, 90], angle: 180},
+                steps: ['主陪带三杯后接管','负责第四杯敬酒','协助主陪控场'],
+                rules: '坐主陪正对面，负责结账事宜'
+            },
+            '主宾': {
+                seat: {pos: [75, 25], angle: 45},
+                steps: ['接受第一敬酒','回敬从主陪开始','保持适度饮酒'],
+                rules: '坐主陪右侧，身份最尊贵客人'
+            },
+            '副宾': {
+                seat: {pos: [25, 25], angle: -45},
+                steps: ['配合主宾行动','主动向主陪敬酒','协助照顾其他宾客'],
+                rules: '坐主陪左侧，第二尊贵客人'
+            },
+            // 新增角色
+            '女性宾客': {
+                seat: {pos: [60, 40], angle: 30},
+                steps: ['可选择性举杯','接受敬酒可抿酒','优先安排热饮'],
+                rules: '通常安排在主宾相邻位置'
+            },
+            '小孩': {
+                seat: {pos: [40, 40], angle: -30},
+                steps: ['使用饮料代酒','安排在父母附近','不需参与敬酒'],
+                rules: '不参与饮酒环节，需准备儿童座椅'
+            },
+            '其他宾客': {
+                seat: {pos: [50, 70], angle: 160},
+                steps: ['跟随主陪节奏','主动配合敬酒','适时添加酒水'],
+                rules: '坐副陪两侧位置，保持礼貌距离'
+            }
+        };
+
+        function createSeat(role, currentRole) {
+            const seat = document.createElement('div');
+            seat.className = `seat ${role === currentRole ? 'highlight' : ''}`;
+            seat.style.left = `${roles[role].seat.pos[0]}%`;
+            seat.style.top = `${roles[role].seat.pos[1]}%`;
+            seat.innerHTML = role === currentRole ? `🌟${role}` : role;
+            return seat;
+        }
+
+        function showGuidance() {
+            const role = document.getElementById('roleInput').value.trim();
+            const resultArea = document.getElementById('resultArea');
+            
+            if (roles[role]) {
+                const table = document.createElement('div');
+                table.className = 'round-table';
+                
+                // 创建所有座位
+                Object.keys(roles).forEach(r => {
+                    table.appendChild(createSeat(r, role));
+                });
+
+                const guidance = `
+                    <h3>${role}礼仪指导</h3>
+                    <div>${table.outerHTML}</div>
+                    <h4>🍶 核心流程：</h4>
+                    <ul>${roles[role].steps.map(s => `<li>${s}</li>`).join('')}</ul>
+                    <h4>📌 重要规则：</h4>
+                    <p>${roles[role].rules}</p>
+                    <div style="color:#666; margin-top:15px;">
+                        <small>※ 圆桌布局说明：</small><br>
+                        <small>1. 主陪正对门中心位置</small><br>
+                        <small>2. 主宾＞副宾＞女性宾客按顺时针排列</small><br>
+                        <small>3. 小孩通常安排在父母身边</small>
+                    </div>
+                `;
+                
+                resultArea.innerHTML = guidance;
+                resultArea.style.display = 'block';
+            } else {
+                resultArea.innerHTML = '⚠️ 有效身份：主陪/副陪/主宾/副宾/女性宾客/小孩/其他宾客';
+                resultArea.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
